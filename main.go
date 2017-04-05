@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elb"
 )
@@ -11,16 +12,29 @@ import (
 const StateInService = "InService"
 
 func main() {
+	var err error
+
 	sess := session.Must(session.NewSession())
 
-	err := checkInstance(sess, "public-ingress", "i-0c03fae448fa9e17b")
+	instanceID, err := getInstanceID(sess)
 
+	err = checkInstance(sess, "public-ingress", instanceID)
 	if err != nil {
 		fmt.Printf("ERROR: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Instance '%s' of LoadBalancer '%s' is InService.\n", "foo", "bar")
+	fmt.Printf("Instance '%s' of LoadBalancer '%s' is InService.\n", instanceID, "bar")
+}
+
+func getInstanceID(sess *session.Session) (string, error) {
+	meta := ec2metadata.New(sess)
+	identity, err := meta.GetInstanceIdentityDocument()
+	if err != nil {
+		return "", err
+	}
+
+	return identity.InstanceID, nil
 }
 
 func checkInstance(sess *session.Session, loadBalancerName, instance string) error {
