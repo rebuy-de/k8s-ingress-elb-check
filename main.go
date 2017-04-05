@@ -14,17 +14,23 @@ const StateInService = "InService"
 func main() {
 	var err error
 
+	if len(os.Args) != 2 {
+		fmt.Printf("USAGE: %s <load-balancer-name>", os.Args[0])
+		os.Exit(2)
+	}
+
+	loadBalancerName := os.Args[1]
+
 	sess := session.Must(session.NewSession())
 
 	instanceID, err := getInstanceID(sess)
-
-	err = checkInstance(sess, "public-ingress", instanceID)
+	err = checkInstance(sess, loadBalancerName, instanceID)
 	if err != nil {
 		fmt.Printf("ERROR: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Instance '%s' of LoadBalancer '%s' is InService.\n", instanceID, "bar")
+	fmt.Printf("Instance '%s' of LoadBalancer '%s' is InService.\n", instanceID, loadBalancerName)
 }
 
 func getInstanceID(sess *session.Session) (string, error) {
