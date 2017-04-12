@@ -3,65 +3,78 @@ package main
 import (
 	"fmt"
 	"os"
-
-	"github.com/aws/aws-sdk-go/aws/ec2metadata"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/elb"
 )
 
-const StateInService = "InService"
+func usage() {
+	fmt.Printf("USAGE: %s <check|register|deregister> <load-balancer-name>\n", os.Args[0])
+	os.Exit(2)
+}
 
-func main() {
-	var err error
-
-	if len(os.Args) != 2 {
-		fmt.Printf("USAGE: %s <load-balancer-name>", os.Args[0])
-		os.Exit(2)
-	}
-
-	loadBalancerName := os.Args[1]
-
-	sess := session.Must(session.NewSession())
-
-	instanceID, err := getInstanceID(sess)
-	err = checkInstance(sess, loadBalancerName, instanceID)
+func must(err error) {
 	if err != nil {
-		fmt.Printf("ERROR: %v\n", err)
+		panic(err)
+	}
+}
+
+func mustPretty(err error) {
+	if err != nil {
+		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)
 	}
+}
+
+func main() {
+	if len(os.Args) != 3 {
+		usage()
+	}
+
+	command := os.Args[1]
+	loadBalancerName := os.Args[2]
+
+	switch command {
+	case "check":
+		checkCommand(loadBalancerName)
+	case "register":
+		registerCommand(loadBalancerName)
+	case "deregister":
+		deregisterCommand(loadBalancerName)
+	default:
+		usage()
+	}
+}
+
+func checkCommand(loadBalancerName string) {
+	aws := NewAWS()
+
+	instanceID, err := aws.InstanceID()
+	must(err)
+
+	err = aws.ELBRequireState(loadBalancerName, instanceID, StateInService)
+	mustPretty(err)
 
 	fmt.Printf("Instance '%s' of LoadBalancer '%s' is InService.\n", instanceID, loadBalancerName)
 }
 
-func getInstanceID(sess *session.Session) (string, error) {
-	meta := ec2metadata.New(sess)
-	identity, err := meta.GetInstanceIdentityDocument()
-	if err != nil {
-		return "", err
-	}
+func registerCommand(loadBalancerName string) {
+	aws := NewAWS()
 
-	return identity.InstanceID, nil
+	instanceID, err := aws.InstanceID()
+	must(err)
+
+	err = aws.ELBRegisterInstance(loadBalancerName, instanceID)
+	must(err)
+
+	fmt.Printf("Registered '%s' to LoadBalancer '%s'.\n", instanceID, loadBalancerName)
 }
 
-func checkInstance(sess *session.Session, loadBalancerName, instance string) error {
-	svc := elb.New(sess)
+func deregisterCommand(loadBalancerName string) {
+	aws := NewAWS()
 
-	result, err := svc.DescribeInstanceHealth(&elb.DescribeInstanceHealthInput{
-		LoadBalancerName: &loadBalancerName,
-		Instances: []*elb.Instance{
-			&elb.Instance{InstanceId: &instance},
-		},
-	})
+	instanceID, err := aws.InstanceID()
+	must(err)
 
-	if err != nil {
-		return err
-	}
+	err = aws.ELBDeregisterInstance(loadBalancerName, instanceID)
+	must(err)
 
-	for _, state := range result.InstanceStates {
-		if *state.State != StateInService {
-			return fmt.Errorf("Instance isn't ready: %s", *state.Description)
-		}
-	}
-
-	return nil
+	fmt.Printf("Deregistered '%s' from LoadBalancer '%s'.\n", instanceID, loadBalancerName)
 }
