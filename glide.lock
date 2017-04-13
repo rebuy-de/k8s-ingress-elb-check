@@ -1,8 +1,8 @@
-hash: 3bcf5e0aee3b3e214eab264136f55d98bc10666a51a3c48159bb2b3780609142
-updated: 2017-04-05T15:54:30.20291001+02:00
+hash: a40e353525c69e26372dd0e0b7652e3d458465cdc64230c45791e64457b22513
+updated: 2017-04-13T15:48:48.226405042+02:00
 imports:
 - name: github.com/aws/aws-sdk-go
-  version: 3a4119172097bf8725eb7c1b96b7957cfe2d92dc
+  version: 7be45195c3af1b54a609812f90c05a7e492e2491
   subpackages:
   - aws
   - aws/awserr
@@ -29,6 +29,12 @@ imports:
   - service/sts
 - name: github.com/go-ini/ini
   version: 1730955e3146956d6a087861380f9b4667ed5071
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
   version: bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d
+- name: github.com/spf13/cobra
+  version: 7be4beda01ec05d0b93d80b3facd2b6f44080d94
+- name: github.com/spf13/pflag
+  version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 testImports: []

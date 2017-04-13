@@ -5,3 +5,4 @@ import:
   subpackages:
   - aws/session
   - service/elb
+- package: github.com/spf13/cobra
