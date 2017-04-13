@@ -1,4 +1,4 @@
-package main
+package aws
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ type AWS struct {
 	session *session.Session
 }
 
-func NewAWS() *AWS {
+func New() *AWS {
 	return &AWS{
 		session: session.Must(session.NewSession()),
 	}
