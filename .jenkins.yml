@@ -1,4 +1,0 @@
-docker:
-   repository: 'ingress-elb-check'
-   mailerRecipients:
-     - 'dl-scb-tech-platform@rebuy.com'
